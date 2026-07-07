@@ -61,7 +61,7 @@ export function AuthLayout({
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-[160px] mx-auto"
+          className="w-full max-w-md mx-auto"
         >
           <h2 className="text-3xl font-extrabold text-ink">{title}</h2>
           <p className="mt-2 text-base text-muted">{subtitle}</p>

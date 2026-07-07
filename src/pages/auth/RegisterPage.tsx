@@ -39,7 +39,7 @@ export function RegisterPage() {
 
   return (
     <AuthLayout title="Start shipping faster" subtitle="Create your free workspace in under a minute.">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-24">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {error && <ErrorBanner message={error} onDismiss={() => setError('')} />}
 
         <Input
@@ -66,7 +66,7 @@ export function RegisterPage() {
         />
 
         <Input
-          label="Password"
+          label="Confirm Password"
           type="password"
           placeholder="Repeat your password"
           error={errors.confirmPassword?.message}
