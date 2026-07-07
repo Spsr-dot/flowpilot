@@ -30,7 +30,7 @@ export function TestimonialsSection() {
           Teams that switched, stayed
         </h2>
 
-        <div className="grid grid-cols-6 gap-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((t, i) => (
             <motion.div
               key={t.name}
