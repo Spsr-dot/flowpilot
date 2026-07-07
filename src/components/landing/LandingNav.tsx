@@ -42,7 +42,7 @@ export function LandingNav() {
             </Link>
           ) : (
             <>
-              <Link to={ROUTES.REGISTER}>
+              <Link to={ROUTES.LOGIN}>
                 <Button variant="ghost" size="sm">Sign In</Button>
               </Link>
               <Link to={ROUTES.REGISTER}>

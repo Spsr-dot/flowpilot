@@ -79,7 +79,7 @@ export function RegisterPage() {
 
         <p className="text-center text-sm text-muted">
           Already have an account?{' '}
-          <Link to={ROUTES.REGISTER} className="font-bold text-primary hover:underline">
+          <Link to={ROUTES.LOGIN} className="font-bold text-primary hover:underline">
             Sign in
           </Link>
         </p>
