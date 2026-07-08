@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, CheckSquare, Trash2, Undo2 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { SearchBar } from '@/components/ui/SearchBar';
@@ -29,34 +29,45 @@ export function TasksPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const sortedRef = useRef<Task[]>([]);
   const debouncedSearch = useDebounce(search);
 
   const filtered = useMemo(() => {
     let result = [...tasks];
+    const normalizedSearch = debouncedSearch.trim().toLowerCase();
 
-    if (search) {
-      result = result.filter(
-        (t) =>
-          t.title.includes(search) ||
-          t.description.includes(search)
-      );
-    }
+    if (normalizedSearch) {
+      result = result.filter((task) => {
+        const projectName = projects.find((project) => project.id === task.projectId)?.name ?? '';
+        const assigneeName = users.find((user) => user.id === task.assigneeId)?.name ?? '';
+        const searchableText = [
+          task.title,
+          task.description,
+          task.priority,
+          task.status,
+          task.dueDate,
+          projectName,
+          assigneeName,
+          ...task.labels,
+        ]
+          .join(' ')
+          .toLowerCase();
 
-    if (statusFilter !== 'all' || priorityFilter !== 'all') {
-      result = result.filter((t) => {
-        const statusMatch = statusFilter === 'all' || t.status === statusFilter;
-        const priorityMatch = priorityFilter === 'all' || t.priority === priorityFilter;
-        return statusMatch || priorityMatch;
+        return searchableText.includes(normalizedSearch);
       });
     }
 
+    result = result.filter((task) => {
+      const statusMatch = statusFilter === 'all' || task.status === statusFilter;
+      const priorityMatch = priorityFilter === 'all' || task.priority === priorityFilter;
+      return statusMatch && priorityMatch;
+    });
+
     return result;
-  }, [tasks, debouncedSearch, statusFilter, priorityFilter]);
+  }, [tasks, debouncedSearch, statusFilter, priorityFilter, projects, users]);
 
   const sorted = useMemo(() => {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-    const list = sortedRef.current.length > 0 && statusFilter === 'all' ? sortedRef.current : [...filtered];
+    const list = [...filtered];
     list.sort((a, b) => {
       switch (sortBy) {
         case 'title': return a.title.localeCompare(b.title);
@@ -66,9 +77,8 @@ export function TasksPage() {
         default: return 0;
       }
     });
-    sortedRef.current = list;
     return list;
-  }, [filtered, sortBy, statusFilter]);
+  }, [filtered, sortBy]);
 
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(
     sorted,
@@ -227,7 +237,7 @@ export function TasksPage() {
       {paginatedItems.length === 0 ? (
         <EmptyState
           icon={<CheckSquare className="h-8 w-8" />}
-          title="No taks found"
+          title="No tasks found"
           description="Try adjusting your filters or create a new task to get started."
           action={<Button onClick={() => setModalOpen(true)}><Plus className="h-4 w-4" /> Create Task</Button>}
         />
