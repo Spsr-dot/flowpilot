@@ -19,7 +19,7 @@ import type {
   DeletedItem,
 } from '@/types';
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from '@/constants';
-import { getFromStorage, setToStorage } from '@/utils/storage';
+import { getFromStorage, setToStorage, removeFromStorage } from '@/utils/storage';
 import { generateId } from '@/utils/helpers';
 import { fetchProjects, createProjectApi, updateProjectApi, deleteProjectApi } from '@/services/projectService';
 import { fetchTasks, createTaskApi, updateTaskApi, deleteTaskApi } from '@/services/taskService';
@@ -77,7 +77,7 @@ const defaultProfile: UserProfile = {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { addToast } = useToast();
-  const { user: authUser } = useAuth();
+  const { user: authUser, updateAuthUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -332,11 +332,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateProfile = (updated: UserProfile) => {
     setProfile(updated);
     if (authUser) {
-      const userProfileKey = `${STORAGE_KEYS.PROFILE}_${authUser.email.toLowerCase()}`;
+      const userProfileKey = `${STORAGE_KEYS.PROFILE}_${updated.email.toLowerCase()}`;
       setToStorage(userProfileKey, updated);
 
       const updatedFields = {
         name: updated.name,
+        email: updated.email,
         phone: updated.phone,
         bio: updated.bio,
         skills: updated.skills,
@@ -354,6 +355,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       // Also update the currentUser state directly
       setCurrentUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+
+      // If email changed, remove the old profile storage key
+      if (authUser.email.toLowerCase() !== updated.email.toLowerCase()) {
+        removeFromStorage(`${STORAGE_KEYS.PROFILE}_${authUser.email.toLowerCase()}`);
+      }
+
+      // Also update authUser, STORAGE_KEYS.USERS, and flowpilot_session
+      updateAuthUser(updated.name, updated.email, updated.avatar);
     }
     addToast('success', 'Profile updated');
   };

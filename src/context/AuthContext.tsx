@@ -19,6 +19,7 @@ interface AuthContextValue {
   logout: () => void;
   updatePassword: (email: string, newPassword: string) => boolean;
   getUsers: () => AuthUser[];
+  updateAuthUser: (name: string, email: string, avatar: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -115,6 +116,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const getUsers = useCallback(() => getStoredUsers(), []);
 
+  const updateAuthUser = useCallback((name: string, email: string, avatar: string) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, name, email, avatar };
+
+      const users = getStoredUsers();
+      const updatedUsers = users.map((u) =>
+        u.email.toLowerCase() === prev.email.toLowerCase()
+          ? { ...u, name, email, avatar }
+          : u
+      );
+      saveUsers(updatedUsers);
+
+      // If email changed, update the session email too
+      const session = getSession();
+      if (session && session.email.toLowerCase() === prev.email.toLowerCase()) {
+        saveSession({ ...session, email });
+      }
+
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -126,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         updatePassword,
         getUsers,
+        updateAuthUser,
       }}
     >
       {children}
