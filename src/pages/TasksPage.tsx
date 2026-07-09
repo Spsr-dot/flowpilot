@@ -67,8 +67,8 @@ export function TasksPage() {
 
   const sorted = useMemo(() => {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-    const list = [...filtered];
-    list.sort((a, b) => {
+    
+    return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'title': return a.title.localeCompare(b.title);
         case 'dueDate': return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
@@ -77,7 +77,6 @@ export function TasksPage() {
         default: return 0;
       }
     });
-    return list;
   }, [filtered, sortBy]);
 
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(
@@ -87,8 +86,6 @@ export function TasksPage() {
 
   const handlePageChange = (page: number) => {
     goToPage(page);
-    setStatusFilter('all');
-    setPriorityFilter('all');
   };
 
   const handleCreate = async (data: TaskFormData) => {
@@ -234,7 +231,7 @@ export function TasksPage() {
         </div>
       </div>
 
-      {paginatedItems.length === 0 ? (
+      {sorted.length === 0 ? (
         <EmptyState
           icon={<CheckSquare className="h-8 w-8" />}
           title="No tasks found"
@@ -243,12 +240,20 @@ export function TasksPage() {
         />
       ) : (
         <>
-          <DataTable
-            columns={columns}
-            data={paginatedItems}
-            onRowClick={(task) => { setEditingTask(task); setModalOpen(true); }}
-          />
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+          {paginatedItems.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground bg-slate-50/50 rounded-xl border border-dashed">
+              No tasks found on this page.
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={paginatedItems}
+              onRowClick={(task) => { setEditingTask(task); setModalOpen(true); }}
+            />
+          )}
+          {totalPages > 1 && (
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+          )}
         </>
       )}
 
