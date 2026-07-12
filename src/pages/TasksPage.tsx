@@ -40,6 +40,30 @@ useEffect(() => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const taskId = searchParams.get('taskId');
+    if (!taskId) return;
+
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      setEditingTask(task);
+      setModalOpen(true);
+    }
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('taskId');
+        return next;
+      },
+      { replace: true }
+    );
+    // Deep-link is only relevant on initial navigation into this page
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filtered = useMemo(() => {
     let result = [...tasks];
     const normalizedSearch = debouncedSearch.trim().toLowerCase();
@@ -76,7 +100,7 @@ useEffect(() => {
 
   const sorted = useMemo(() => {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-    
+
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'title': return a.title.localeCompare(b.title);
